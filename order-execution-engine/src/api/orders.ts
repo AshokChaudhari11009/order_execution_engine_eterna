@@ -49,17 +49,24 @@ export async function ordersRoutes(app: FastifyInstance, opts: any) {
     { websocket: true },
     (connection: any, req: any) => {
       try {
-        // Fastify provides req.url as path with query string (e.g., "/api/orders/execute?orderId=xxx")
-        // or we can use req.query directly
+        // Get socket from connection (Fastify WebSocket structure)
+        const socket = connection.socket || connection;
+        
+        if (!socket) {
+          console.error('WebSocket connection has no socket');
+          return;
+        }
+
+        // Parse orderId from query string
         const orderId = req.query?.orderId || (() => {
           // Fallback: parse from URL if query is not available
           const urlMatch = req.url?.match(/[?&]orderId=([^&]+)/);
-          return urlMatch ? urlMatch[1] : null;
+          return urlMatch ? decodeURIComponent(urlMatch[1]) : null;
         })();
 
         if (!orderId) {
-          connection.socket.send(JSON.stringify({ error: 'Missing orderId in query' }));
-          connection.socket.close(1008, 'Missing orderId');
+          socket.send(JSON.stringify({ error: 'Missing orderId in query' }));
+          socket.close(1008, 'Missing orderId');
           return;
         }
 
@@ -67,7 +74,7 @@ export async function ordersRoutes(app: FastifyInstance, opts: any) {
         wsHub.subscribe(orderId, connection);
         
         // Send confirmation
-        connection.socket.send(JSON.stringify({ 
+        socket.send(JSON.stringify({ 
           ok: true, 
           orderId, 
           message: 'Subscribed to order updates' 
@@ -78,14 +85,18 @@ export async function ordersRoutes(app: FastifyInstance, opts: any) {
       } catch (error: any) {
         console.error('WebSocket error:', error);
         try {
-          connection.socket.send(JSON.stringify({ 
-            error: 'Internal server error', 
-            message: error.message 
-          }));
+          const socket = connection.socket || connection;
+          if (socket) {
+            socket.send(JSON.stringify({ 
+              error: 'Internal server error', 
+              message: error.message 
+            }));
+            socket.close(1011, 'Internal error');
+          }
         } catch (e) {
           // Connection might already be closed
+          console.error('Error closing WebSocket:', e);
         }
-        connection.socket.close(1011, 'Internal error');
       }
     }
   );
