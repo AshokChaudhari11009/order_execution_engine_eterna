@@ -84,8 +84,47 @@ See `postman_collection.json`. Import and:
 - Send 3–5 POST /execute requests quickly
 - Open WS tabs to observe all status updates
 
-### Deployment
+### Docker Deployment
+
+#### Using Docker Compose (Recommended for Local Development)
+1. Ensure Docker and Docker Compose are installed
+2. Run all services:
+```bash
+docker-compose up -d
+```
+This will start:
+- PostgreSQL on port 5432
+- Redis on port 6379
+- The application on port 3001
+
+3. View logs:
+```bash
+docker-compose logs -f app
+```
+
+4. Stop all services:
+```bash
+docker-compose down
+```
+
+#### Environment Variables
+The application uses the following environment variables:
+
+- `PORT` - Server port (default: 3001)
+- `DATABASE_URL` - PostgreSQL connection string
+  - Local: `postgres://postgres:postgres@127.0.0.1:5432/orders`
+  - Docker: `postgres://postgres:postgres@postgres:5432/orders`
+- `REDIS_URL` - Redis connection string
+  - Local: `redis://127.0.0.1:6379`
+  - Docker: `redis://redis:6379`
+- `QUEUE_NAME` - BullMQ queue name (default: `orders`)
+- `NODE_ENV` - Environment mode (`development` or `production`)
+
+When deploying to cloud platforms (Railway/Render/Fly), set these environment variables in your platform's dashboard. The application will automatically detect the environment and use appropriate connection strings.
+
+### Cloud Deployment
 - Any Node hosting (Railway/Render/Fly). Ensure Redis and Postgres URLs are set in env vars.
+- The application automatically detects containerized environments and uses service names when `NODE_ENV=production`
 
 ### Notes
 - This project uses `synchronize: true` for TypeORM in development. For production, use migrations.
