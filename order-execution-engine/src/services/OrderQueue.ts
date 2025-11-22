@@ -1,12 +1,12 @@
 import { Queue, Worker, QueueEvents, JobsOptions } from 'bullmq';
-import IORedis from 'ioredis';
+import { Redis } from 'ioredis';
 import { QUEUE_NAME, REDIS_URL, AppDataSource } from '../config/env.js';
 import { wsHub } from '../utils/wsHub.js';
 import { Order } from '../models/Order.js';
 import { OrderExecutor } from './OrderExecutor.js';
 import { logger } from '../utils/logger.js';
 
-export const connection = new IORedis(REDIS_URL, { maxRetriesPerRequest: null });
+export const connection = new Redis(REDIS_URL, { maxRetriesPerRequest: null });
 export const orderQueue = new Queue(QUEUE_NAME, {
   connection,
   defaultJobOptions: {
