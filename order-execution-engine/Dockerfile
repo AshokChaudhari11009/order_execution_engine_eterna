@@ -2,17 +2,17 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files and tsconfig.json (needed for postinstall script)
+# Copy package files
 COPY package*.json ./
+
+# Install dependencies without running scripts (postinstall tries to build before source files exist)
+RUN npm ci --production=false --ignore-scripts
+
+# Copy source code and config files
 COPY tsconfig.json ./
+COPY src ./src
 
-# Install dependencies (postinstall will run build, but we need tsconfig.json first)
-RUN npm ci --production=false
-
-# Copy source code
-COPY . .
-
-# Build TypeScript (in case postinstall didn't work or for rebuild)
+# Build TypeScript
 RUN npm run build
 
 # Expose port
