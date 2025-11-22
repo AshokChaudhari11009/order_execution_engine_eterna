@@ -122,9 +122,34 @@ The application uses the following environment variables:
 
 When deploying to cloud platforms (Railway/Render/Fly), set these environment variables in your platform's dashboard. The application will automatically detect the environment and use appropriate connection strings.
 
-### Cloud Deployment
+### Railway Deployment
+
+1. **Create a new Railway project** and connect your GitHub repository
+
+2. **Add PostgreSQL service:**
+   - Click "New" → "Database" → "Add PostgreSQL"
+   - Railway will automatically create a `DATABASE_URL` environment variable
+   - Your app service will automatically have access to this variable
+
+3. **Add Redis service:**
+   - Click "New" → "Database" → "Add Redis"
+   - Railway will automatically create a `REDIS_URL` environment variable
+   - Your app service will automatically have access to this variable
+
+4. **Verify environment variables:**
+   - Go to your app service → "Variables" tab
+   - Ensure `DATABASE_URL` and `REDIS_URL` are listed (they should be automatically linked)
+   - If not, click "Reference Variable" and select them from the PostgreSQL and Redis services
+
+5. **Deploy:**
+   - Railway will automatically detect your `nixpacks.toml` and build your app
+   - The app will start once the build completes
+
+**Important:** The application will now fail fast with clear error messages if `DATABASE_URL` or `REDIS_URL` are missing in cloud environments, preventing connection to `127.0.0.1`.
+
+### Cloud Deployment (Other Platforms)
 - Any Node hosting (Railway/Render/Fly). Ensure Redis and Postgres URLs are set in env vars.
-- The application automatically detects containerized environments and uses service names when `NODE_ENV=production`
+- The application automatically detects cloud environments and requires environment variables to be set
 
 ### Notes
 - This project uses `synchronize: true` for TypeORM in development. For production, use migrations.
