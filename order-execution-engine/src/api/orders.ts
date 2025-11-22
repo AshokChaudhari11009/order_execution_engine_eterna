@@ -48,15 +48,45 @@ export async function ordersRoutes(app: FastifyInstance, opts: any) {
     '/execute',
     { websocket: true },
     (connection: any, req: any) => {
-      const url = new URL(req.url, `http://${req.headers.host}`);
-      const orderId = url.searchParams.get('orderId');
-      if (!orderId) {
-        connection.socket.send(JSON.stringify({ error: 'Missing orderId in query' }));
-        connection.socket.close();
-        return;
+      try {
+        // Fastify provides req.url as path with query string (e.g., "/api/orders/execute?orderId=xxx")
+        // or we can use req.query directly
+        const orderId = req.query?.orderId || (() => {
+          // Fallback: parse from URL if query is not available
+          const urlMatch = req.url?.match(/[?&]orderId=([^&]+)/);
+          return urlMatch ? urlMatch[1] : null;
+        })();
+
+        if (!orderId) {
+          connection.socket.send(JSON.stringify({ error: 'Missing orderId in query' }));
+          connection.socket.close(1008, 'Missing orderId');
+          return;
+        }
+
+        // Subscribe to order updates
+        wsHub.subscribe(orderId, connection);
+        
+        // Send confirmation
+        connection.socket.send(JSON.stringify({ 
+          ok: true, 
+          orderId, 
+          message: 'Subscribed to order updates' 
+        }));
+
+        // Log for debugging
+        console.log(`WebSocket subscribed to order: ${orderId}`);
+      } catch (error: any) {
+        console.error('WebSocket error:', error);
+        try {
+          connection.socket.send(JSON.stringify({ 
+            error: 'Internal server error', 
+            message: error.message 
+          }));
+        } catch (e) {
+          // Connection might already be closed
+        }
+        connection.socket.close(1011, 'Internal error');
       }
-      wsHub.subscribe(orderId, connection);
-      connection.socket.send(JSON.stringify({ ok: true, orderId, message: 'Subscribed' }));
     }
   );
 }
