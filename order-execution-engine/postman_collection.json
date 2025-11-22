@@ -1,0 +1,60 @@
+{
+  "info": {
+    "name": "Order Execution Engine",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Execute Limit Order",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "http://localhost:3001/api/orders/execute",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3001",
+          "path": ["api", "orders", "execute"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tokenIn\": \"SOL\",\n  \"tokenOut\": \"USDC\",\n  \"amountIn\": 1,\n  \"limitPrice\": 1.5\n}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "WS Subscribe (manual)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// After running Execute Limit Order, copy the orderId here:",
+              "pm.environment.set('orderId', '<paste-orderId>');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "ws://localhost:3001/api/orders/execute?orderId={{orderId}}",
+          "protocol": "ws",
+          "host": ["localhost"],
+          "port": "3001",
+          "path": ["api", "orders", "execute"],
+          "query": [
+            { "key": "orderId", "value": "{{orderId}}" }
+          ]
+        }
+      }
+    }
+  ]
+}

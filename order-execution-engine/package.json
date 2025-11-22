@@ -1,0 +1,32 @@
+{
+  "name": "order-execution-engine",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --loader ts-node/esm --no-warnings=ExperimentalWarning src/index.ts",
+    "build": "tsc -p .",
+    "start": "node dist/index.js",
+    "test": "node --loader ts-node/esm --no-warnings=ExperimentalWarning ./tests/run-tests.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "@fastify/websocket": "^10.0.1",
+    "bullmq": "^5.7.14",
+    "dotenv": "^16.4.5",
+    "fastify": "^4.28.1",
+    "ioredis": "^5.4.1",
+    "pg": "^8.13.1",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.20",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.7",
+    "@types/ws": "^8.5.12",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.6.3"
+  }
+}
